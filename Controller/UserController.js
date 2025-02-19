@@ -8,34 +8,29 @@ dotenv.config();
 
 
 export async function requestUser(req, res) {
-    const { email, password, type, firstName, lastName, address, phone, Team, profilePicture } = req.body;
+    const { email, password,coachId,coachName} = req.body;
 
     try {
         // Hash the password before saving to the database
         const hashedPassword = bcrypt.hashSync(password, 10);
 
         // SQL Query
-        const sql = `INSERT INTO users (email, password, type, firstName, lastName, address, phone, Team, profilePicture) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO coach(coach_id, coach_name, email, password) 
+                     VALUES (?, ?, ?, ?)`;
 
         const values = [
+            coachId,
+            coachName,
             email,
             hashedPassword, // Store hashed password
-            type || "student", // Default value
-            firstName,
-            lastName,
-            address,
-            phone,
-            Team || null, // Optional
-            profilePicture || "https://cdn.vectorstock.com/i/1000v/92/16/default-profile-picture-avatar-user-icon-vector-46389216.jpg"
         ];
 
         // Execute query
-        const [result] = await pool.execute(sql, values);
+         await pool.execute(sql, values);
 
         res.status(200).json({
             message: "User Saved Successfully",
-            userId: result.insertId, // Return inserted user ID
+            userId:coachId, // Return inserted user ID
         });
 
     } catch (error) {
@@ -52,10 +47,11 @@ export async function requestUser(req, res) {
 
 export async function LoginUser(req, res) {
     const { email, password } = req.body;
+    
 
     try {
         // Query the database for the user by email
-        const sql = "SELECT * FROM users WHERE email = ?";
+        const sql = "SELECT * FROM coach WHERE email = ?";
         const [rows] = await pool.execute(sql, [email]);
 
         // Check if the user exists
@@ -72,12 +68,9 @@ export async function LoginUser(req, res) {
             // Generate JWT token with user details
             const token = jwt.sign(
                 {
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    email: user.email,
-                    type: user.type,
-                    profilePicture: user.profilePicture,
-                    phone: user.phone
+                    coachId: user.coach_id,
+                    coachName: user.coach_name,
+                    email: user.email
                 },
                 process.env.JWT_SECRET, // Make sure this is set in your .env file
                 { expiresIn: "2h" } // Token expires in 2 hours
@@ -95,3 +88,52 @@ export async function LoginUser(req, res) {
     }
 }
 
+
+export async function addcollector(req,res) {          //addnew collector
+   
+    //console.log(req.user);
+   
+    if(req.user.coachId != null){
+
+        
+                    const { email, password,collectorId,collectorName} = req.body;
+                
+                    try {
+                        // Hash the password before saving to the database
+                        const hashedPassword = bcrypt.hashSync(password, 10);
+                
+                        // SQL Query
+                        const sql = `INSERT INTO collector(collector_id, collector_name, email, password) 
+                                    VALUES (?, ?, ?, ?)`;
+                
+                        const values = [
+                            collectorId,
+                            collectorName,
+                            email,
+                            hashedPassword, // Store hashed password
+                        ];
+                
+                        // Execute query
+                        await pool.execute(sql, values);
+                
+                        res.status(200).json({
+                            message: "User Saved Successfully",
+                            userId:collectorId, // Return inserted user ID
+                        });
+
+                        return
+                
+                    } catch (error) {
+                        console.error("Database error:", error);
+                        res.status(500).json({ error: "User Save Unsuccessful" });
+                    }
+
+            
+                
+
+    }else{
+        res.status(403).json({
+            Message:"your are not authorized to perform this acction"   
+        })  
+    } 
+}
