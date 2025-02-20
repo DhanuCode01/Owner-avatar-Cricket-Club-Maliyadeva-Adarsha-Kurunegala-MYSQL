@@ -51,6 +51,7 @@ export async function addStudent(req,res) {
   
 
                                                                                     res.status(200).json({ message: "saved successfully" });
+                                                                                    return
 
                                                                     }catch(error){ 
                                                                         console.log(error)                                                     //If the lines are not running, it is a connection error.
@@ -90,6 +91,51 @@ export async function addStudent(req,res) {
                 }
           
 
+}
+
+
+export async function getStudent(req,res) {
+    const studentId=req.params.SID;
+    const {email}= req.user;
+        
+        try {
+                
+            
+          // Query the database for the user by email
+          const sql = "SELECT * FROM collector WHERE email = ?";
+          
+          const [rows] = await pool.execute(sql, [email]);
+        
+         
+                    if (rows.length != 0) {
+
+                        const sql = `SELECT s.student_id, s.student_name, s.contact_no, s.address, s.team_code,c.coach_id, c.coach_name 
+                                    FROM student s
+                                    JOIN student_coach sc ON s.student_id = sc.student_id
+                                    JOIN coach c ON sc.coach_id = c.coach_id
+                                    WHERE s.student_id = ?; `;
+                         const [rows] = await pool.execute(sql, [studentId]);
+
+                         res.status(200).json({
+                            Message:rows   
+                          })
+
+
+
+                    }else{
+                        res.status(406).json({
+                           Message:"your are not authorized to perform this acction"   
+                         }) 
+                    }
+
+
+             }catch(error){ 
+                 console.log(error)                                                     //If the lines are not running, it is a connection error.
+                 res.status(500).json({
+                   error:"database connection unsuccessfully"})
+                 }
+
+    
 }
 
 
