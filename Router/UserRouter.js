@@ -1,11 +1,12 @@
 import express from "express";
-import {  requestUser, LoginUser ,addcollector } from "../Controller/UserController.js";
+import {  requestCoach, LoginCoach ,addcollector,LoginCollector } from "../Controller/UserController.js";
 
 const userRouter=express.Router();
 
-userRouter.post("/",requestUser);
-userRouter.post("/user",LoginUser);
+userRouter.post("/coach",requestCoach);
+userRouter.get("/coach",LoginCoach);
 userRouter.post("/collector",addcollector);
+userRouter.get("/collector",LoginCollector);
 
 addcollector
 

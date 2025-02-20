@@ -7,7 +7,7 @@ import pool from "../db.js"; // Import MySQL database connection
 dotenv.config();
 
 
-export async function requestUser(req, res) {
+export async function requestCoach(req, res) {
     const { email, password,coachId,coachName} = req.body;
 
     try {
@@ -45,7 +45,7 @@ export async function requestUser(req, res) {
 
 
 
-export async function LoginUser(req, res) {
+export async function LoginCoach(req, res) {
     const { email, password } = req.body;
     
 
@@ -70,7 +70,8 @@ export async function LoginUser(req, res) {
                 {
                     coachId: user.coach_id,
                     coachName: user.coach_name,
-                    email: user.email
+                    email: user.email,
+                    password:user.password
                 },
                 process.env.JWT_SECRET, // Make sure this is set in your .env file
                 { expiresIn: "2h" } // Token expires in 2 hours
@@ -90,11 +91,22 @@ export async function LoginUser(req, res) {
 
 
 export async function addcollector(req,res) {          //addnew collector
-   
-    //console.log(req.user);
-   
-    if(req.user.coachId != null){
 
+            const {email,password}= req.user;
+        
+
+          // Query the database for the user by email
+          const sql = "SELECT * FROM coach WHERE email = ?";
+          
+          const [rows] = await pool.execute(sql, [email]);
+
+          //const user = rows[0]; // Get the first (and only) user
+        
+          // Compare the provided password with the hashed password in the database
+                             //const isPasswordCorrect = bcrypt.compareSync(password,user.password);
+          // Check if the user exists
+          if (rows.length != 0) {
+          
         
                     const { email, password,collectorId,collectorName} = req.body;
                 
@@ -126,7 +138,7 @@ export async function addcollector(req,res) {          //addnew collector
                     } catch (error) {
                         console.error("Database error:", error);
                         res.status(500).json({ error: "User Save Unsuccessful" });
-                    }
+                    } 
 
             
                 
@@ -136,4 +148,51 @@ export async function addcollector(req,res) {          //addnew collector
             Message:"your are not authorized to perform this acction"   
         })  
     } 
+}
+
+
+
+
+
+export async function LoginCollector(req, res) {
+    const { email, password } = req.body;
+    
+
+    try {
+        // Query the database for the user by email
+        const sql = "SELECT * FROM collector WHERE email = ?";
+        const [rows] = await pool.execute(sql, [email]);
+
+        // Check if the user exists
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const user = rows[0]; // Get the first (and only) user
+
+        // Compare the provided password with the hashed password in the database
+        const isPasswordCorrect = bcrypt.compareSync(password, user.password);
+
+        if (isPasswordCorrect) {
+            // Generate JWT token with user details
+            const token = jwt.sign(
+                {
+                    coachId: user.collector_id,
+                    coachName: user.collector_name,
+                    email: user.email
+                },
+                process.env.JWT_SECRET, // Make sure this is set in your .env file
+                { expiresIn: "2h" } // Token expires in 2 hours
+            );
+
+            res.json({ success: "Login Successfully", token: token });
+
+        } else {
+            res.status(401).json({ error: "Incorrect password" });
+        }
+
+    } catch (error) {
+        console.error("Database error:", error);
+        res.status(500).json({ error: "Database connection unsuccessful" });
+    }
 }
