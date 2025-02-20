@@ -138,13 +138,14 @@ export async function addcollector(req,res) {          //addnew collector
                     } catch (error) {
                         console.error("Database error:", error);
                         res.status(500).json({ error: "User Save Unsuccessful" });
+                        return
                     } 
 
             
                 
 
     }else{
-        res.status(403).json({
+        res.status(406).json({
             Message:"your are not authorized to perform this acction"   
         })  
     } 
@@ -186,9 +187,11 @@ export async function LoginCollector(req, res) {
             );
 
             res.json({ success: "Login Successfully", token: token });
+            return
 
         } else {
             res.status(401).json({ error: "Incorrect password" });
+            return
         }
 
     } catch (error) {

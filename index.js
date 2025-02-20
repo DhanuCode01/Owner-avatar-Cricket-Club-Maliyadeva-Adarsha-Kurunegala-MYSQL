@@ -4,6 +4,8 @@ import userRouter from "./Router/UserRouter.js";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken"; 
+import teamRouter from "./Router/TeamRouter.js";
+import studentRouter from "./Router/StudentRouter.js";
 
 
 dotenv.config();
@@ -35,6 +37,8 @@ app.use((req,res,next)=>{
 //app.use("/api/student",StudentRouter);
     //http:localhost:3002/api/student
 app.use("/api/user",userRouter);
+app.use("/api/team",teamRouter);
+app.use("/api/student",studentRouter)
 
 
     app.listen(3002,()=>{
