@@ -27,7 +27,7 @@ export async function addStudent(req,res) {
                                                         const sql2 = "SELECT * FROM coach WHERE coach_id = ?";
                                                         const [rows2] = await pool.execute(sql2, [CoachId2]);
                                                         
-                                                        if(rows1.length != 0  &&  rows2.length != 0){
+                                                        if(rows1.length != 0  &&  rows2.length != 0){   
                                                             
                                                                     try{
                                                                                       //enter data to student table
