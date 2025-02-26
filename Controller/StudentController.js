@@ -80,6 +80,7 @@ export async function addStudent(req,res) {
                                      res.status(406).json({
                                         Message:"your are not authorized to perform this acction"   
                                       }) 
+                                      return
                                  }
                   
                     
@@ -120,12 +121,16 @@ export async function getStudent(req,res) {
                             Message:rows   
                           })
 
+                          return
+
 
 
                     }else{
                         res.status(406).json({
                            Message:"your are not authorized to perform this acction"   
                          }) 
+
+                         return
                     }
 
 

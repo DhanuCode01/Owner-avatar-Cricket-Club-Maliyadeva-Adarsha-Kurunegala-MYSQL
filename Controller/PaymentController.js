@@ -2,7 +2,7 @@ import pool from "../db.js"; // Import MySQL database connection
 
 export async function addPayment(req,res) {
 
-    const {StudentId,fee,collectorId} = req.body;
+    const {StudentId,fee,collectorId,PaymentYear,PaymentMonth} = req.body;
     const {email}= req.user;
         
         try {
@@ -23,17 +23,21 @@ export async function addPayment(req,res) {
 
                                     if(rows.length != 0 && rows1.length == 0 ){      //Checking if a student is present
                                                     
-                                                    const sql=`INSERT INTO payment(student_id,fee,collector_id) VALUES (?, ?, ?) `;
-                                                    const values = [StudentId,fee,collectorId];
+                                                    const sql=`INSERT INTO payment(student_id,fee,collector_id,payment_Year,payment_month) VALUES (?, ?, ?, ?, ?) `;
+                                                    const values = [StudentId,fee,collectorId,PaymentYear,PaymentMonth];
                                                     await pool.execute(sql, values); 
 
                                                     res.status(200).json({ message: "saved successfully"})
+
+                                                    return
 
                                                     
                                     }else{
                                         res.status(401).json({
                                             Message:"check your student......."   
                                             }) 
+
+                                        return
                                     }
                                    
                                    
@@ -44,6 +48,8 @@ export async function addPayment(req,res) {
                         res.status(406).json({
                         Message:"your are not authorized to perform this acction"   
                         }) 
+
+                        return
                     }
 
 
@@ -72,20 +78,23 @@ export async function searchPayment(req,res) {
           const [rows1] = await pool.execute(sql1, [email]);
         
          
-                    if (rows.length != 0 || rows1.length != 0 ) {
+                    if (rows.length != 0 || rows1.length != 0 ) {                //check  authorization
 
-                        const sql = "SELECT * FROM payment WHERE date = ?";
+                        const sql = "SELECT * FROM payment WHERE DATE(date) = ?";
                         const [rows] = await pool.execute(sql, [Date]);
 
                         res.status(200).json({
                             Message:rows
                         })
+                        return
 
 
                     }else{
                         res.status(406).json({
                         Message:"your are not authorized to perform this action"   
                         }) 
+
+                        return
                     }
 
         
@@ -95,4 +104,75 @@ export async function searchPayment(req,res) {
              error:"database connection unsuccessfully"})
         }
 }
-    
+
+export async function updatePayment(req,res) {
+    const {StudentId,Year,Month,Amount}=req.body;
+    const {email}= req.user;
+        
+        try {
+                
+            
+          // Query the database for the user by email
+          const sql = "SELECT * FROM collector WHERE email = ?";
+          const sql1 = "SELECT * FROM coach WHERE email = ?";
+
+          
+          const [rows] = await pool.execute(sql, [email]);
+          const [rows1] = await pool.execute(sql1, [email]);
+        
+         
+                    if (rows.length != 0 || rows1.length != 0 ) {     //check  authorization
+
+                        const sql =`SELECT * FROM payment WHERE student_id = ? AND payment_Year = ? AND payment_month = ?`;
+                        const [rows] = await pool.execute(sql, [StudentId,Year,Month]);
+                        let fee=rows[0].fee;                    //now paid amount
+
+                                    if(rows.length != 0){       //Check if there is a student with this StudentId,Year,Month
+                                                    fee=parseFloat(fee)+ parseFloat(Amount);       //calculate fee
+                                                    if (fee <= 5000){
+                                                                    // Update the fee in the payment record
+                                                                    const sql = `UPDATE payment SET fee = 5000 WHERE student_id = ? AND payment_Year = ? AND payment_month = ?`;
+                                                                    await pool.execute(sql, [StudentId,Year,Month]);
+
+                                                                    res.status(200).json({ message: "Paid Successfully" });
+
+
+                                                                    return
+
+                                                        
+
+                                                    }else{
+                                                        res.status(402).json({
+                                                            message:"Check Amount and try Again"
+                                                        })
+
+                                                        return
+                                                    }
+
+
+                                                  
+                                    }else{
+                                        res.status(401).json({
+                                            message:"You have not paid any money."
+                                        })
+
+                                        return
+                                    }
+
+
+
+                    }else{
+                        res.status(406).json({
+                        Message:"your are not authorized to perform this action"   
+                        }) 
+
+                        return
+                    }
+
+        
+        }catch(error){ 
+             console.log(error)                                                     //If the lines are not running, it is a connection error.
+             res.status(500).json({
+             error:"database connection unsuccessfully"})
+             }
+}
