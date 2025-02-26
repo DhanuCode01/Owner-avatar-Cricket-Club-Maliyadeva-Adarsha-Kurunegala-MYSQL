@@ -54,3 +54,45 @@ export async function addPayment(req,res) {
             error:"database connection unsuccessfully"})
             }
 }
+
+
+export async function searchPayment(req,res) {
+    const Date=req.params.Date;
+    const {email}= req.user;
+        
+        try {
+                
+            
+          // Query the database for the user by email
+          const sql = "SELECT * FROM collector WHERE email = ?";
+          const sql1 = "SELECT * FROM coach WHERE email = ?";
+
+          
+          const [rows] = await pool.execute(sql, [email]);
+          const [rows1] = await pool.execute(sql1, [email]);
+        
+         
+                    if (rows.length != 0 || rows1.length != 0 ) {
+
+                        const sql = "SELECT * FROM payment WHERE date = ?";
+                        const [rows] = await pool.execute(sql, [Date]);
+
+                        res.status(200).json({
+                            Message:rows
+                        })
+
+
+                    }else{
+                        res.status(406).json({
+                        Message:"your are not authorized to perform this action"   
+                        }) 
+                    }
+
+        
+        }catch(error){ 
+             console.log(error)                                                     //If the lines are not running, it is a connection error.
+             res.status(500).json({
+             error:"database connection unsuccessfully"})
+        }
+}
+    

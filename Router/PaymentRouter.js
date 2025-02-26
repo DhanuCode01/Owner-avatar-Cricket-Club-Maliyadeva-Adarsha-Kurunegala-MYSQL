@@ -1,10 +1,11 @@
 import express from "express";
-import { addPayment } from "../Controller/PaymentController.js";
+import { addPayment, searchPayment } from "../Controller/PaymentController.js";
 
 
 const paymentRouter=express.Router();
 
 paymentRouter.post("/",addPayment);
+paymentRouter.get("/:Date",searchPayment);
 
 
 
