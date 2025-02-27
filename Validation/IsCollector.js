@@ -11,4 +11,4 @@
           // Compare the provided password with the hashed password in the database
                              //const isPasswordCorrect = bcrypt.compareSync(password,user.password);
           // Check if the user exists
-          if (rows.length != 0)  */
+          if (rows.length != 0)  */ 
