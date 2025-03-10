@@ -3,7 +3,7 @@ import pool from "../db.js"; // Import MySQL database connection
 
 export async function addteam(req,res) {
 
-    const {teamName,ageGroup} = req.body;
+    const {teamName,monthly_collection} = req.body;
     const {email}= req.user;
         
         try {
@@ -16,8 +16,8 @@ export async function addteam(req,res) {
         
          
                     if (rows.length != 0) {
-                        const sql = `INSERT INTO teams (team_name,age_group) VALUES (?, ?)`;
-                        const values = [teamName,ageGroup];
+                        const sql = `INSERT INTO collection_teams (team_name) VALUES (?)`;
+                        const values = [teamName];
 
                         await pool.execute(sql, values);
 
@@ -38,4 +38,3 @@ export async function addteam(req,res) {
           
 
 }
-

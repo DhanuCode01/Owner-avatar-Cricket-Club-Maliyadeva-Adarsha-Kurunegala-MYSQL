@@ -2,21 +2,27 @@ import pool from "../db.js"; // Import MySQL database connection
 
 export async function getTeamStudent(req,res) {
 
-    const Team= req.params.TeamCode;
+    const TeamName= req.params.TeamName;
     const {email}= req.user;
         
         try {
                 
             
           // Query the database for the user by email
-          const sql = "SELECT * FROM collector WHERE email = ?";
+          const sql = "SELECT * FROM collectors WHERE email = ?";
           const [rows] = await pool.execute(sql, [email]);
             
 
                     if (rows.length != 0  ) {          //check  authorization 
 
-                                const sql="SELECT * FROM student WHERE team_code = ?";
-                                const [rows]=await pool.execute(sql,[Team]);
+                                const sql=`SELECT s.student_id, s.NAME, s.age, s.gender, s.age_group, s.address, s.mobile_no, s.home_telephone_no, s.nic, s.is_active
+                                            FROM students s
+                                            JOIN team_student ts ON s.student_id = ts.student_id
+                                            JOIN teams t ON ts.team_id = t.team_id
+                                            WHERE t.team_name = ?;
+                                                `;
+
+                                const [rows]=await pool.execute(sql,[TeamName]);
                                 
 
                                 res.status(200).json({
@@ -50,7 +56,7 @@ export async function markAttendance(req,res) {
                 
             
           // Query the database for the user by email
-          const sql = "SELECT * FROM collector WHERE email = ?";
+          const sql = "SELECT * FROM collectors WHERE email = ?";
           const [rows] = await pool.execute(sql, [email]);
             
 
@@ -58,10 +64,10 @@ export async function markAttendance(req,res) {
 
                                 // Insert each attendance record one by one
                                     for (const record of attendanceData) {
-                                        const { StudentId, Status, Team } = record;
+                                        const { StudentId, Status } = record;
 
-                                        const insertSql = `INSERT INTO attendance (student_id, status, team_code) VALUES (?, ?, ?)`;
-                                        await pool.execute(insertSql, [StudentId, Status, Team]);
+                                        const insertSql = `INSERT INTO attendance (student_id, STATUS) VALUES (?, ?)`;
+                                        await pool.execute(insertSql, [StudentId, Status]);
                                     }
 
                                     res.status(200).json({ message: "Attendance marked successfully" });
@@ -110,14 +116,20 @@ export async function getAttendance(req,res) {
                 
             
           // Query the database for the user by email
-          const sql = "SELECT * FROM collector WHERE email = ?";
+          const sql = "SELECT * FROM collectors WHERE email = ?";
           const [rows] = await pool.execute(sql, [email]);
           
             
 
                     if (rows.length != 0  ) {          //check  authorization
 
-                                const sql="SELECT * FROM attendance WHERE team_code = ? AND DATE(attendance_datetime)  = ?";
+                                const sql=`SELECT a.attendance_id, s.NAME, a.attend_time, a.STATUS
+                                            FROM attendance a
+                                            JOIN students s ON a.student_id = s.student_id
+                                            JOIN team_student ts ON s.student_id = ts.student_id
+                                            JOIN teams t ON ts.team_id = t.team_id
+                                            WHERE t.team_name = ? AND  (a.attend_time) = ?;
+                                            `;
                                 const [rows]=await pool.execute(sql,[Team,Date]);
                                 
 

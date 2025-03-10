@@ -6,7 +6,7 @@ const attendanceRouter=express.Router();
 
 
 attendanceRouter.get("/attendance",getAttendance);
-attendanceRouter.get("/:TeamCode",getTeamStudent);
+attendanceRouter.get("/:TeamName",getTeamStudent);
 attendanceRouter.post("/",markAttendance);
 
 
