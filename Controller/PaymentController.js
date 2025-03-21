@@ -2,29 +2,34 @@ import pool from "../db.js"; // Import MySQL database connection
 
 export async function addPayment(req,res) {
 
-    const {StudentId,fee,collectorId,PaymentYear,PaymentMonth} = req.body;
+    const {StudentId,AmountCollected,collectorId,PaymentStatus,Year,Month,assignedTeamId} = req.body;
     const {email}= req.user;
         
         try {
                 
             
           // Query the database for the user by email
-          const sql = "SELECT * FROM collector WHERE email = ?";
+          const sql = "SELECT * FROM collectors WHERE email = ?";
           const [rows] = await pool.execute(sql, [email]);
             
 
                     if (rows.length != 0 && collectorId == rows[0].collector_id ) {       //Checking whether the collector of the token is the same as the collector of the body    
                                    
-                                    const sql = "SELECT * FROM student WHERE student_id = ?";           //get student in student database
+                                    const sql = "SELECT * FROM students WHERE student_id = ?";           //get student in student database
                                     const [rows] = await pool.execute(sql, [StudentId]);
-                                    const sql1 = "SELECT * FROM payment WHERE student_id = ?";          //get student in payment database 
+                                    const sql1 = "SELECT * FROM daily_collections WHERE student_id = ?";          //get student in payment database 
                                     const [rows1] = await pool.execute(sql1, [StudentId]);
 
 
                                     if(rows.length != 0 && rows1.length == 0 ){      //Checking if a student is present
                                                     
-                                                    const sql=`INSERT INTO payment(student_id,fee,collector_id,payment_Year,payment_month) VALUES (?, ?, ?, ?, ?) `;
-                                                    const values = [StudentId,fee,collectorId,PaymentYear,PaymentMonth];
+                                                    const sql=`INSERT INTO daily_collections(student_id,collector_id,amount_collected,payment_status,Year,month) VALUES (?, ?, ?, ?, ?, ?) `;
+                                                    const values = [StudentId,collectorId,AmountCollected,PaymentStatus,Year,Month];
+                                                    //  Update the monthly collection in `collection_teams`
+                                                    const sql1 = `UPDATE collection_teams 
+                                                                                    SET monthly_collection = monthly_collection + ?
+                                                                                     WHERE collection_team_id = ? `;
+                                                    await pool.execute(sql1, [AmountCollected, assignedTeamId]);
                                                     await pool.execute(sql, values); 
 
                                                     res.status(200).json({ message: "saved successfully"})
@@ -70,8 +75,8 @@ export async function searchPayment(req,res) {
                 
             
           // Query the database for the user by email
-          const sql = "SELECT * FROM collector WHERE email = ?";
-          const sql1 = "SELECT * FROM coach WHERE email = ?";
+          const sql = "SELECT * FROM collectors WHERE email = ?";
+          const sql1 = "SELECT * FROM coaches WHERE email = ?";
 
           
           const [rows] = await pool.execute(sql, [email]);
@@ -80,7 +85,7 @@ export async function searchPayment(req,res) {
          
                     if (rows.length != 0 || rows1.length != 0 ) {                //check  authorization
 
-                        const sql = "SELECT * FROM payment WHERE DATE(date) = ?";
+                        const sql = "SELECT * FROM daily_collections WHERE DATE(collected_time) = ?";
                         const [rows] = await pool.execute(sql, [Date]);
 
                         res.status(200).json({
@@ -106,7 +111,7 @@ export async function searchPayment(req,res) {
 }
 
 export async function updatePayment(req,res) {
-    const {StudentId,Year,Month,Amount}=req.body;
+    /* const {StudentId,Year,Month,Amount}=req.body;
     const {email}= req.user;
         
         try {
@@ -174,5 +179,5 @@ export async function updatePayment(req,res) {
              console.log(error)                                                     //If the lines are not running, it is a connection error.
              res.status(500).json({
              error:"database connection unsuccessfully"})
-             }
+             } */
 }
