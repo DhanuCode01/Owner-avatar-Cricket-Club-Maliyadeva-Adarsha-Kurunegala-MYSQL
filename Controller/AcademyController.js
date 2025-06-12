@@ -16,7 +16,7 @@ export async function academyAdd(req, res) {
 
         // SQL Query
         const sql = `INSERT INTO academy_info( academy_name,address,registration_no,telephone,logo, email, password) 
-                     VALUES ( ?, ?, ?, ?, ?, ?, ?)`;//comment test
+                     VALUES ( ?, ?, ?, ?, ?, ?, ?)`;
 
         const values = [
             
